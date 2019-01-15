@@ -1,16 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# FPSU = [{   sn: серийный номер,
-#             name: имя в УА,
-#             ip: ip адрес ФПСУ ЦА,
-#             crypt: криптосеть,
-#             num_key: номер ключа,
-#             change_key: время смены ключа,
-#             abonents: абоненты прописанные за ФПСУ,
-#             active: True | False,
-#             reserve: 0 - нет резерва | 1 - есть, ок | 2 - есть, не ок
-#             }]
-
 import os
 import re
 import datetime
