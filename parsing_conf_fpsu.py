@@ -211,4 +211,9 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         if fpsu_list[i].get('reserve') == 2 and fpsu_list[i].get('active'):
             f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
 
+    f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
+    for i in range(len(fpsu_list)):
+        if 'SCS' not in fpsu_list[i].get('crypt') and fpsu_list[i].get('active'):
+            f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+
 print('Готово!')
