@@ -32,10 +32,21 @@ for files in read_directory:
 
         if file.endswith('.SBT'):
             number_file_sbt += 1
-            fpsu = {'sn': '', 'name': '', 'ip': [], 'crypt': [], 'num_key': [], 'change_key': [], 'abonents': [], 'active': '', 'reserve': 0}
+            
+            fpsu = {
+                    'sn': '',
+                    'name': '',
+                    'crypt_load': [],
+                    'port1': {'ip': [], 'fpsu_port': [{'ip':'', 'crypt': [], 'router': [], 'abonet': []}]},
+                    'port2': {'ip': [], 'fpsu_port': [{'ip':'', 'crypt': [], 'router': [], 'abonet': []}]},
+                    'abonents': [],
+                    'active': '',
+                    'reserve': 0}
+            
             with open(files[0] + '\\' + file, 'r') as f_sbt:
 
                 # Флаги
+                flag_keys = False # Описание ключей <<<<<<<<<<<<<<<<
                 flag_fpsu_block = False # Внутри блока ФПСУ-МАРШРУТИЗАТОРЫ
                 flag_fpsu_ca = False # Внутри описания ФПСУ ЦA
                 flag_fpsu_abonent = False
@@ -51,7 +62,21 @@ for files in read_directory:
                     if const_serial in line:
                         fpsu['sn'] = line.split()[-1]
                         continue
-
+                    
+                    # Поиск загруженных ключей
+                    if line.upper() == 'КЛЮЧИ':
+                        flag_keys = True
+                        continue
+                    if flag_keys:
+                        if 'Криптосеть' in line:
+                            line = line.strip()
+                            fpsu['crypt_load'].append()
+                            continue
+# <<<<<<<<<<<<<<<
+                    
+                    
+                    
+                    
                     # Поиск ip адреса ФПСУ ЦА
                     if line and line in const_start:
                         flag_fpsu_block = True
