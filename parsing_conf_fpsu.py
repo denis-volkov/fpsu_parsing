@@ -48,6 +48,8 @@ for files in read_directory:
                 # Флаги
                 flag_keys = False # Описание ключей 
                 flag_port = False # Раздел Порт <<<<<<<<<<<<<<<<
+                port = 'port1' # Номер порта ФПСУ для записи данных
+
                 flag_fpsu_block = False # Внутри блока ФПСУ-МАРШРУТИЗАТОРЫ
                 flag_fpsu_ca = False # Внутри описания ФПСУ ЦA
                 flag_fpsu_abonent = False
@@ -78,12 +80,14 @@ for files in read_directory:
                     
                     if re.search('порт', line, re.I): # Достигли раздела Порт
                         flag_port = True
+                        if re.search(r'порт ?2', line, re.I): # Определяем номер порта
+                           port = 'port2'
                         continue
                     if flag_port:
-                        if not fpsu['port1']['ip']:
+                        if not fpsu[port]['ip']:
                             line = line.split()
-                            fpsu['port1']['ip'].append(line[0])
-                            fpsu['port1']['ip'].append(line[1])
+                            fpsu[port]['ip'].append(line[0])
+                            fpsu[port]['ip'].append(line[1])
 
 # <<<<<<<<<<<<<<<
 
