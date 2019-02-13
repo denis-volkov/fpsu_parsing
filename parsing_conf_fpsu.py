@@ -70,8 +70,10 @@ for files in read_directory:
                     if flag_keys:
                         if 'Криптосеть' in line:
                             line = line.strip()
-                            fpsu['crypt_load'].append()
+                            fpsu['crypt_load'].append(line[1])
                             continue
+                        elif 'Разрешены' in line:
+                            flag_keys = False
 # <<<<<<<<<<<<<<<
                     
                     
