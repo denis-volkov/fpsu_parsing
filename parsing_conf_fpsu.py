@@ -46,7 +46,8 @@ for files in read_directory:
             with open(files[0] + '\\' + file, 'r') as f_sbt:
 
                 # Флаги
-                flag_keys = False # Описание ключей <<<<<<<<<<<<<<<<
+                flag_keys = False # Описание ключей 
+                flag_port = False # Раздел Порт <<<<<<<<<<<<<<<<
                 flag_fpsu_block = False # Внутри блока ФПСУ-МАРШРУТИЗАТОРЫ
                 flag_fpsu_ca = False # Внутри описания ФПСУ ЦA
                 flag_fpsu_abonent = False
@@ -69,87 +70,94 @@ for files in read_directory:
                         continue
                     if flag_keys:
                         if 'Криптосеть' in line:
-                            line = line.strip()
+                            line = line.split()
                             fpsu['crypt_load'].append(line[1])
                             continue
                         elif 'Разрешены' in line:
                             flag_keys = False
+                    
+                    if re.search('порт', line, re.I): # Достигли раздела Порт
+                        flag_port = True
+                        continue
+                    if flag_port:
+                        if not fpsu['port1']['ip']:
+                            line = line.split()
+                            fpsu['port1']['ip'].append(line[0])
+                            fpsu['port1']['ip'].append(line[1])
+
 # <<<<<<<<<<<<<<<
-                    
-                    
-                    
-                    
-                    # Поиск ip адреса ФПСУ ЦА
-                    if line and line in const_start:
-                        flag_fpsu_block = True
-                        continue
-                    elif line == const_stop:
-                        flag_fpsu_block = False
-                        flag_fpsu_ca = False
-                        continue
-                    elif line == const_abonent:
-                        flag_fpsu_abonent = True
-                        flag_fpsu_block = False
-                        flag_fpsu_ca = False
-                        continue
-                    elif 'ПОРТ ' in line:
-                        flag_fpsu_abonent = False
-                        continue
 
-                    if flag_fpsu_block and 'Адрес ' in line:
-                        try:
-                            reg = str(re.search(const_ip_ca, line)[0])
-                        except TypeError:
-                            pass
-                        else:
-                            if 'Адрес ' + reg in line:
-                                fpsu['ip'].append(reg)
-                                fpsu['abonents'].append('') # Чтобы не было проблем с индексом
-                                flag_fpsu_ca = True
+                    # # Поиск ip адреса ФПСУ ЦА
+                    # if line and line in const_start:
+                    #     flag_fpsu_block = True
+                    #     continue
+                    # elif line == const_stop:
+                    #     flag_fpsu_block = False
+                    #     flag_fpsu_ca = False
+                    #     continue
+                    # elif line == const_abonent:
+                    #     flag_fpsu_abonent = True
+                    #     flag_fpsu_block = False
+                    #     flag_fpsu_ca = False
+                    #     continue
+                    # elif 'ПОРТ ' in line:
+                    #     flag_fpsu_abonent = False
+                    #     continue
 
-                    if flag_fpsu_ca:
-                        if not line:
-                            flag_fpsu_ca = False
-                        elif 'Криптосеть:' in line:
-                            fpsu['crypt'].append(line.split()[1])
-                            fpsu['num_key'].append(line.split()[3])
-                            fpsu['change_key'].append(line.split()[-2])
+                    # if flag_fpsu_block and 'Адрес ' in line:
+                    #     try:
+                    #         reg = str(re.search(const_ip_ca, line)[0])
+                    #     except TypeError:
+                    #         pass
+                    #     else:
+                    #         if 'Адрес ' + reg in line:
+                    #             fpsu['ip'].append(reg)
+                    #             fpsu['abonents'].append('') # Чтобы не было проблем с индексом
+                    #             flag_fpsu_ca = True
 
-                    if flag_fpsu_abonent:
-                        if 'Адрес' in line:
-                            temp_abonent = line.split()[1]
-                            if 'Host' in line:
-                                temp_mask = '255.255.255.255'
-                            else:
-                                temp_mask = line.split()[-1]
-                            continue
-                        if not line:
-                            temp_mask = ''
-                            temp_abonent = ''
-                            flag_fpsu_in_next_line = False
-                            continue
-                        if 'Режим работы' in line:
-                            if line.split()[-1] == "Ретрансляция":
-                                temp_mask = ''
-                                temp_abonent = ''
-                                temp_fpsu = ''
-                                continue
-                            elif line.split()[-1] != 'ФПСУ-IP':
-                                temp_fpsu = line.split()[-1]
-                            else:
-                                flag_fpsu_in_next_line = True
-                                continue
+                    # if flag_fpsu_ca:
+                    #     if not line:
+                    #         flag_fpsu_ca = False
+                    #     elif 'Криптосеть:' in line:
+                    #         fpsu['crypt'].append(line.split()[1])
+                    #         fpsu['num_key'].append(line.split()[3])
+                    #         fpsu['change_key'].append(line.split()[-2])
 
-                        if flag_fpsu_in_next_line or temp_fpsu:
-                            if not temp_fpsu:
-                                temp_fpsu = line.split()[0]
-                            if temp_fpsu in fpsu['ip']:
-                                num_fpsu_ca = fpsu['ip'].index(temp_fpsu)
-                                fpsu['abonents'][num_fpsu_ca] += temp_abonent + ' mask ' + temp_mask + ';'
-                            flag_fpsu_in_next_line = False
-                            temp_fpsu = ''
+                    # if flag_fpsu_abonent:
+                    #     if 'Адрес' in line:
+                    #         temp_abonent = line.split()[1]
+                    #         if 'Host' in line:
+                    #             temp_mask = '255.255.255.255'
+                    #         else:
+                    #             temp_mask = line.split()[-1]
+                    #         continue
+                    #     if not line:
+                    #         temp_mask = ''
+                    #         temp_abonent = ''
+                    #         flag_fpsu_in_next_line = False
+                    #         continue
+                    #     if 'Режим работы' in line:
+                    #         if line.split()[-1] == "Ретрансляция":
+                    #             temp_mask = ''
+                    #             temp_abonent = ''
+                    #             temp_fpsu = ''
+                    #             continue
+                    #         elif line.split()[-1] != 'ФПСУ-IP':
+                    #             temp_fpsu = line.split()[-1]
+                    #         else:
+                    #             flag_fpsu_in_next_line = True
+                    #             continue
 
-                            continue
+                    #     if flag_fpsu_in_next_line or temp_fpsu:
+                    #         if not temp_fpsu:
+                    #             temp_fpsu = line.split()[0]
+                    #         if temp_fpsu in fpsu['ip']:
+                    #             num_fpsu_ca = fpsu['ip'].index(temp_fpsu)
+                    #             fpsu['abonents'][num_fpsu_ca] += temp_abonent + ' mask ' + temp_mask + ';'
+                    #         flag_fpsu_in_next_line = False
+                    #         temp_fpsu = ''
+
+                    #         continue
 
             fpsu_list.append(fpsu)
 print('\n', end = '')
@@ -208,39 +216,41 @@ with open('fpsuinfo.xml', 'r') as f_xml:
 
 
 # Финальный txt
-with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
-    f_result.write('Дата и время анализа: ' + str(datetime.datetime.now()) + '\n')
-    f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
+# with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
+#     f_result.write('Дата и время анализа: ' + str(datetime.datetime.now()) + '\n')
+#     f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
 
-    f_result.write('\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        if not fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
-            f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+#     f_result.write('\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
+#     for i in range(len(fpsu_list)):
+#         if not fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
+#             f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
 
-    f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        if fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
-            for ii in range(len(fpsu_list[i].get('abonents'))):
-                if not fpsu_list[i].get('abonents')[ii]:
-                    f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
-                break
+#     f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
+#     for i in range(len(fpsu_list)):
+#         if fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
+#             for ii in range(len(fpsu_list[i].get('abonents'))):
+#                 if not fpsu_list[i].get('abonents')[ii]:
+#                     f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+#                 break
 
-    f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        if fpsu_list[i].get('change_key') and fpsu_list[i].get('active'):
-            for ii in range(len(fpsu_list[i].get('change_key'))):
-                if fpsu_list[i].get('change_key')[ii] != '120':
-                    f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
-                    break
+#     f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
+#     for i in range(len(fpsu_list)):
+#         if fpsu_list[i].get('change_key') and fpsu_list[i].get('active'):
+#             for ii in range(len(fpsu_list[i].get('change_key'))):
+#                 if fpsu_list[i].get('change_key')[ii] != '120':
+#                     f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+#                     break
 
-    f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        if fpsu_list[i].get('reserve') == 2 and fpsu_list[i].get('active'):
-            f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+#     f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
+#     for i in range(len(fpsu_list)):
+#         if fpsu_list[i].get('reserve') == 2 and fpsu_list[i].get('active'):
+#             f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
 
-    f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        if 'SCS' not in fpsu_list[i].get('crypt') and fpsu_list[i].get('active'):
-            f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+#     f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
+#     for i in range(len(fpsu_list)):
+#         if 'SCS' not in fpsu_list[i].get('crypt') and fpsu_list[i].get('active'):
+#             f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
 
 print('Готово!')
+print(fpsu_list[0])
+print(fpsu_list[1])
