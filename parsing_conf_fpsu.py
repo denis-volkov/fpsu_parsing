@@ -11,9 +11,7 @@ except ModuleNotFoundError:
     const_ip_ca = r'192.168.000.' # Регулярка для адреса ЦА
 
 const_serial = 'Серийный номер ФПСУ'
-const_stop = 'МАРШРУТИЗАТОРЫ'
-const_start = 'ФПСУ-IP'
-const_abonent = 'АБОНЕНТЫ'
+const_re_ip = r'(\d{3}\.){3}\d{3}' # Регулярка для любого ip-адреса
 
 read_directory = os.walk(os.getcwd())  # Текущая директория скрипта
 fpsu_list = []
@@ -37,8 +35,8 @@ for files in read_directory:
                     'sn': '',
                     'name': '',
                     'crypt_load': [],
-                    'port1': {'ip': [], 'fpsu_port': [{'ip':'', 'crypt': [], 'router': [], 'abonet': []}]},
-                    'port2': {'ip': [], 'fpsu_port': [{'ip':'', 'crypt': [], 'router': [], 'abonet': []}]},
+                    'port1': {'ip': [], 'fpsu_on_port': []},
+                    'port2': {'ip': [], 'fpsu_on_port': []},
                     'abonents': [],
                     'active': '',
                     'reserve': 0}
@@ -47,16 +45,13 @@ for files in read_directory:
 
                 # Флаги
                 flag_keys = False # Описание ключей 
-                flag_port = False # Раздел Порт <<<<<<<<<<<<<<<<
+                flag_port = False # Раздел Порт
+                flag_fpsu = False # Внутри блока ФПСУ
+                flag_fpsu_router_in_next_line = False
+                flag_router = False # Внутри блока МАРШРУТИЗАТОРЫ
+                flag_forward = False # Необходимость промотки парсинга до пустой строки
                 port = 'port1' # Номер порта ФПСУ для записи данных
-
-                flag_fpsu_block = False # Внутри блока ФПСУ-МАРШРУТИЗАТОРЫ
-                flag_fpsu_ca = False # Внутри описания ФПСУ ЦA
-                flag_fpsu_abonent = False
-                flag_fpsu_in_next_line = False
-                temp_fpsu = ''
-                temp_mask = ''
-                temp_abonent = ''
+                fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
 
                 for line in f_sbt:
                     line = line.strip()
@@ -78,18 +73,56 @@ for files in read_directory:
                         elif 'Разрешены' in line:
                             flag_keys = False
                     
-                    if re.search('порт', line, re.I): # Достигли раздела Порт
+                    # Достигли раздела Порт
+                    if re.search('порт', line, re.I):
                         flag_port = True
                         if re.search(r'порт ?2', line, re.I): # Определяем номер порта
                            port = 'port2'
                         continue
                     if flag_port:
-                        if not fpsu[port]['ip']:
-                            line = line.split()
+                        line = line.split()
+                        if not fpsu[port]['ip']: # Извлекаем адрес порта
                             fpsu[port]['ip'].append(line[0])
                             fpsu[port]['ip'].append(line[1])
+                            flag_fpsu = False
+                            continue
+                        if 'ФПСУ-IP' in line:
+                            flag_fpsu = True
+                            continue
+                        if flag_fpsu:
+                            if line == []:
+                                fpsu[port]['fpsu_on_port'].append(fpsu_on_port_temp)
+                                fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
+                                flag_forward = False
+                                continue
+                            if flag_forward:
+                                continue
+                            if 'Адрес' in line: # Извлекаем адрес ФПСУ за портом
+                                fpsu_on_port_temp['ip'] = line[1]
+                                continue
+                            if 'Криптосеть:' in line: # Извлекаем крипто для туннеля
+                                fpsu_on_port_temp['crypt'].append(line[1])
+                                fpsu_on_port_temp['crypt'].append(line[-2])
+                                continue
+                            if 'Доступен' in line:
+                                flag_fpsu_router_in_next_line = True
+                                continue
+                            if flag_fpsu_router_in_next_line: # Извлекаем роутеры для туннельной ФПСУ
+                                if re.search(const_re_ip, line[0]):
+                                    fpsu_on_port_temp['router'].extend(line)
+                                    continue
+                                else:
+                                    flag_fpsu_router_in_next_line = False
+                                    flag_forward = True # Ускорени и устранение ошибки, т.к. далее также встречается "Адрес"
+                                    continue
+                            if line[0] == 'МАРШРУТИЗАТОРЫ':
+                                flag_fpsu = False
+                                flag_router = True
+                                continue
+                        ###
 
-# <<<<<<<<<<<<<<<
+
+# <<<<<<<<<<<<<<<12
 
                     # # Поиск ip адреса ФПСУ ЦА
                     # if line and line in const_start:
