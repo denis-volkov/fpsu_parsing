@@ -35,8 +35,8 @@ for files in read_directory:
                     'sn': '',
                     'name': '',
                     'crypt_load': [],
-                    'port1': {'ip': [], 'fpsu_on_port': []},
-                    'port2': {'ip': [], 'fpsu_on_port': []},
+                    'port1': {'ip': [], 'fpsu_on_port': [], 'routers': [], 'abonents_on_port':[]},
+                    'port2': {'ip': [], 'fpsu_on_port': [], 'routers': [], 'abonents_on_port':[]},
                     'abonents': [],
                     'active': '',
                     'reserve': 0}
@@ -49,6 +49,7 @@ for files in read_directory:
                 flag_fpsu = False # Внутри блока ФПСУ
                 flag_fpsu_router_in_next_line = False
                 flag_router = False # Внутри блока МАРШРУТИЗАТОРЫ
+                flag_abonent = False
                 flag_forward = False # Необходимость промотки парсинга до пустой строки
                 port = 'port1' # Номер порта ФПСУ для записи данных
                 fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
@@ -76,6 +77,9 @@ for files in read_directory:
                     # Достигли раздела Порт
                     if re.search('порт', line, re.I):
                         flag_port = True
+                        flag_fpsu = False
+                        flag_router = False
+                        flag_abonent = False
                         if re.search(r'порт ?2', line, re.I): # Определяем номер порта
                            port = 'port2'
                         continue
@@ -84,11 +88,21 @@ for files in read_directory:
                         if not fpsu[port]['ip']: # Извлекаем адрес порта
                             fpsu[port]['ip'].append(line[0])
                             fpsu[port]['ip'].append(line[1])
-                            flag_fpsu = False
                             continue
                         if 'ФПСУ-IP' in line:
                             flag_fpsu = True
+                            flag_abonent = False
+                            flag_router = False
                             continue
+                        if 'МАРШРУТИЗАТОРЫ' in line:
+                            flag_router = True
+                            flag_fpsu = False
+                            flag_abonent = False
+                            continue
+                        if 'АБОНЕНТЫ' in line:
+                            flag_abonent = True
+                            flag_router = False
+                            flag_fpsu = False
                         if flag_fpsu:
                             if line == []:
                                 fpsu[port]['fpsu_on_port'].append(fpsu_on_port_temp)
@@ -115,10 +129,9 @@ for files in read_directory:
                                     flag_fpsu_router_in_next_line = False
                                     flag_forward = True # Ускорени и устранение ошибки, т.к. далее также встречается "Адрес"
                                     continue
-                            if line[0] == 'МАРШРУТИЗАТОРЫ':
-                                flag_fpsu = False
-                                flag_router = True
-                                continue
+                        if flag_router:
+                            if 'Основной' in line:
+                                fpsu[port]['routers'].append({'ip': line[-1], 'abonent':[]})
                         ###
 
 
@@ -290,4 +303,3 @@ with open('fpsuinfo.xml', 'r') as f_xml:
 
 print('Готово!')
 print(fpsu_list[0])
-print(fpsu_list[1])

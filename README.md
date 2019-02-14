@@ -11,10 +11,8 @@ fpsu = [{   sn: str - серийный номер,
                         router: [ip],                - адреса роутеров для ФПСУ
                         abonent: [(ip, mask)]        - абоненты за ФПСУ
                 }]
-                routers: {
-                    ip: [ip_abonent, mask_abonent]   - ip - роутер 
-                }
-                abonents_port = [(ip_abonent, mask_abonent)]    - абоненты за портом ФПСУ
+                routers:[{'ip':'', 'abonent':[(ip_abonent, mask_abonent)]}]
+                abonents_on_port = [(ip_abonent, mask_abonent)]    - абоненты за портом ФПСУ
             }
             port2,
             active: True | False - живой/не живой,
