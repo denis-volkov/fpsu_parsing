@@ -53,6 +53,7 @@ for files in read_directory:
                 flag_forward = False # Необходимость промотки парсинга до пустой строки
                 port = 'port1' # Номер порта ФПСУ для записи данных
                 fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
+                abonent_temp = [] # временный список, будет кортежем
 
                 for line in f_sbt:
                     line = line.strip()
@@ -132,28 +133,15 @@ for files in read_directory:
                         if flag_router:
                             if 'Основной' in line:
                                 fpsu[port]['routers'].append({'ip': line[-1], 'abonent':[]})
-                        ###
-
-
+                        if flag_abonent:
+                            if 'Адрес' in line:
+                                abonent_temp.append(line[1])
+                                if 'Host' in line:
+                                    abonent_temp.append('255.255.255.255')
+                                else:
+                                    abonent_temp.append(line[-1])
+                                continue
 # <<<<<<<<<<<<<<<12
-
-                    # # Поиск ip адреса ФПСУ ЦА
-                    # if line and line in const_start:
-                    #     flag_fpsu_block = True
-                    #     continue
-                    # elif line == const_stop:
-                    #     flag_fpsu_block = False
-                    #     flag_fpsu_ca = False
-                    #     continue
-                    # elif line == const_abonent:
-                    #     flag_fpsu_abonent = True
-                    #     flag_fpsu_block = False
-                    #     flag_fpsu_ca = False
-                    #     continue
-                    # elif 'ПОРТ ' in line:
-                    #     flag_fpsu_abonent = False
-                    #     continue
-
                     # if flag_fpsu_block and 'Адрес ' in line:
                     #     try:
                     #         reg = str(re.search(const_ip_ca, line)[0])
@@ -164,14 +152,6 @@ for files in read_directory:
                     #             fpsu['ip'].append(reg)
                     #             fpsu['abonents'].append('') # Чтобы не было проблем с индексом
                     #             flag_fpsu_ca = True
-
-                    # if flag_fpsu_ca:
-                    #     if not line:
-                    #         flag_fpsu_ca = False
-                    #     elif 'Криптосеть:' in line:
-                    #         fpsu['crypt'].append(line.split()[1])
-                    #         fpsu['num_key'].append(line.split()[3])
-                    #         fpsu['change_key'].append(line.split()[-2])
 
                     # if flag_fpsu_abonent:
                     #     if 'Адрес' in line:
