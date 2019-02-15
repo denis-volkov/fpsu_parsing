@@ -6,10 +6,10 @@ fpsu = [{   sn: str - серийный номер,
             port1={
                 ip:[ip, mask],                       - адрес порта
                 fpsu_on_port = [{                    - ФПСУ описанные за портом
-                        ip                           - конкретная ФПСУ
+                        ip: []                          - конкретная ФПСУ
                         crypt: [криптосеть, смена],
                         router: [ip],                - адреса роутеров для ФПСУ
-                        abonent: [(ip, mask)]        - абоненты за ФПСУ
+                        abonent: [(ip_abonent, mask_abonent)]        - абоненты за ФПСУ
                 }]
                 routers:[{'ip':'', 'abonent':[(ip_abonent, mask_abonent)]}]
                 abonents_on_port = [(ip_abonent, mask_abonent)]    - абоненты за портом ФПСУ

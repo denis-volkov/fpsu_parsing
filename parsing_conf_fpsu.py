@@ -76,7 +76,7 @@ for files in read_directory:
                             flag_keys = False
                     
                     # Достигли раздела Порт
-                    if re.search('порт', line, re.I):
+                    if re.search(r'^порт', line, re.I):
                         flag_port = True
                         flag_fpsu = False
                         flag_router = False
@@ -85,27 +85,28 @@ for files in read_directory:
                            port = 'port2'
                         continue
                     if flag_port:
-                        line = line.split()
                         if not fpsu[port]['ip']: # Извлекаем адрес порта
-                            fpsu[port]['ip'].append(line[0])
-                            fpsu[port]['ip'].append(line[1])
+                            fpsu[port]['ip'].append(line.split()[0])
+                            fpsu[port]['ip'].append(line.split()[1])
                             continue
-                        if 'ФПСУ-IP' in line:
+                        if re.search(r'^ФПСУ-IP$', line, re.I):
                             flag_fpsu = True
                             flag_abonent = False
                             flag_router = False
                             continue
-                        if 'МАРШРУТИЗАТОРЫ' in line:
+                        if re.search(r'^МАРШРУТИЗАТОРЫ$', line, re.I):
                             flag_router = True
                             flag_fpsu = False
                             flag_abonent = False
                             continue
-                        if 'АБОНЕНТЫ' in line:
+                        if re.search(r'^АБОНЕНТЫ$', line, re.I):
                             flag_abonent = True
                             flag_router = False
                             flag_fpsu = False
+                            continue
+                        line = line.split()
                         if flag_fpsu:
-                            if line == []:
+                            if not line:
                                 fpsu[port]['fpsu_on_port'].append(fpsu_on_port_temp)
                                 fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
                                 flag_forward = False
@@ -134,6 +135,12 @@ for files in read_directory:
                             if 'Основной' in line:
                                 fpsu[port]['routers'].append({'ip': line[-1], 'abonent':[]})
                         if flag_abonent:
+                            print('line = {}'.format(line))#####
+                            if not line:
+                                flag_forward = False
+                                continue
+                            if flag_forward:
+                                continue
                             if 'Адрес' in line:
                                 abonent_temp.append(line[1])
                                 if 'Host' in line:
@@ -141,6 +148,26 @@ for files in read_directory:
                                 else:
                                     abonent_temp.append(line[-1])
                                 continue
+                            if ('работы' in line) and ('ФПСУ-IP' in line):
+                                for i in range(len(fpsu[port]['fpsu_on_port'])):
+                                    if fpsu[port]['fpsu_on_port'][i]['ip'] == line[-3]:
+                                        fpsu[port]['fpsu_on_port'][i]['abonent'].append(tuple(abonent_temp))
+                                        flag_forward = True
+                                        abonent_temp = []
+                                        continue
+                            if 'Доступен' in line:
+                                flag_fpsu_router_in_next_line = True
+                                continue
+                            if flag_fpsu_router_in_next_line:
+                                for i in range(len(fpsu[port]['routers'])):
+                                    if fpsu[port]['routers'][i]['ip'] == line[0]:
+                                        fpsu[port]['routers'][i]['abonent'].append(tuple(abonent_temp))
+                                flag_fpsu_router_in_next_line = False
+                                flag_forward = True
+                                abonent_temp = []
+                                continue
+
+
 # <<<<<<<<<<<<<<<12
                     # if flag_fpsu_block and 'Адрес ' in line:
                     #     try:
