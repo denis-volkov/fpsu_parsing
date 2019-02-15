@@ -168,54 +168,6 @@ for files in read_directory:
                                 continue
 
 
-# <<<<<<<<<<<<<<<12
-                    # if flag_fpsu_block and 'Адрес ' in line:
-                    #     try:
-                    #         reg = str(re.search(const_ip_ca, line)[0])
-                    #     except TypeError:
-                    #         pass
-                    #     else:
-                    #         if 'Адрес ' + reg in line:
-                    #             fpsu['ip'].append(reg)
-                    #             fpsu['abonents'].append('') # Чтобы не было проблем с индексом
-                    #             flag_fpsu_ca = True
-
-                    # if flag_fpsu_abonent:
-                    #     if 'Адрес' in line:
-                    #         temp_abonent = line.split()[1]
-                    #         if 'Host' in line:
-                    #             temp_mask = '255.255.255.255'
-                    #         else:
-                    #             temp_mask = line.split()[-1]
-                    #         continue
-                    #     if not line:
-                    #         temp_mask = ''
-                    #         temp_abonent = ''
-                    #         flag_fpsu_in_next_line = False
-                    #         continue
-                    #     if 'Режим работы' in line:
-                    #         if line.split()[-1] == "Ретрансляция":
-                    #             temp_mask = ''
-                    #             temp_abonent = ''
-                    #             temp_fpsu = ''
-                    #             continue
-                    #         elif line.split()[-1] != 'ФПСУ-IP':
-                    #             temp_fpsu = line.split()[-1]
-                    #         else:
-                    #             flag_fpsu_in_next_line = True
-                    #             continue
-
-                    #     if flag_fpsu_in_next_line or temp_fpsu:
-                    #         if not temp_fpsu:
-                    #             temp_fpsu = line.split()[0]
-                    #         if temp_fpsu in fpsu['ip']:
-                    #             num_fpsu_ca = fpsu['ip'].index(temp_fpsu)
-                    #             fpsu['abonents'][num_fpsu_ca] += temp_abonent + ' mask ' + temp_mask + ';'
-                    #         flag_fpsu_in_next_line = False
-                    #         temp_fpsu = ''
-
-                    #         continue
-
             fpsu_list.append(fpsu)
 print('\n', end = '')
 print('Обрабатываю полученные данные...')
