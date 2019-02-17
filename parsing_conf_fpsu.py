@@ -37,7 +37,6 @@ for files in read_directory:
                     'crypt_load': [],
                     'port1': {'ip': [], 'fpsu_on_port': [], 'routers': [], 'abonents_on_port':[]},
                     'port2': {'ip': [], 'fpsu_on_port': [], 'routers': [], 'abonents_on_port':[]},
-                    'abonents': [],
                     'active': '',
                     'reserve': 0}
             
@@ -135,12 +134,16 @@ for files in read_directory:
                             if 'Основной' in line:
                                 fpsu[port]['routers'].append({'ip': line[-1], 'abonent':[]})
                         if flag_abonent:
-                            print('line = {}'.format(line))#####
                             if not line:
                                 flag_forward = False
+                                if abonent_temp:
+                                    fpsu[port]['abonents_on_port'].append(tuple(abonent_temp))
+                                    abonent_temp = []
                                 continue
                             if flag_forward:
                                 continue
+
+                            # Получаем адрес и маску абонента
                             if 'Адрес' in line:
                                 abonent_temp.append(line[1])
                                 if 'Host' in line:
@@ -148,13 +151,17 @@ for files in read_directory:
                                 else:
                                     abonent_temp.append(line[-1])
                                 continue
-                            if ('работы' in line) and ('ФПСУ-IP' in line):
+
+                            # Абонент за ФПСУ, детектируем и зиписываем в мега структуру
+                            if ('работы' in line) and ('ФПСУ-IP' in line): 
                                 for i in range(len(fpsu[port]['fpsu_on_port'])):
                                     if fpsu[port]['fpsu_on_port'][i]['ip'] == line[-3]:
                                         fpsu[port]['fpsu_on_port'][i]['abonent'].append(tuple(abonent_temp))
-                                        flag_forward = True
-                                        abonent_temp = []
-                                        continue
+                                flag_forward = True
+                                abonent_temp = []
+                                continue
+
+                            # Абонент за маршрутизатором, детектируем и записываем в мега структуру
                             if 'Доступен' in line:
                                 flag_fpsu_router_in_next_line = True
                                 continue
