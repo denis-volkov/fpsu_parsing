@@ -103,6 +103,12 @@ for files in read_directory:
                             flag_router = False
                             flag_fpsu = False
                             continue
+                        # неизвестный раздел
+                        if re.search(r'[А-Я]{5,} *[А-Я]*', line):
+                            flag_abonent = False
+                            flag_router = False
+                            flag_fpsu = False
+                            continue
                         line = line.split()
                         if flag_fpsu:
                             if not line:
