@@ -50,6 +50,7 @@ for files in read_directory:
                 flag_router = False # Внутри блока МАРШРУТИЗАТОРЫ
                 flag_abonent = False
                 flag_forward = False # Необходимость промотки парсинга до пустой строки
+                flag_retr = False
                 port = 'port1' # Номер порта ФПСУ для записи данных
                 fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
                 abonent_temp = [] # временный список, будет кортежем
@@ -104,7 +105,7 @@ for files in read_directory:
                             flag_fpsu = False
                             continue
                         # неизвестный раздел
-                        if re.search(r'[А-Я]{5,} *[А-Я]*', line):
+                        if re.search(r'[А-Я]{5,} *[А-Я]*', line) and not flag_forward and not flag_fpsu_router_in_next_line:
                             flag_abonent = False
                             flag_router = False
                             flag_fpsu = False
@@ -159,18 +160,28 @@ for files in read_directory:
                                 continue
 
                             # Абонент за ФПСУ, детектируем и зиписываем в мега структуру
-                            if ('работы' in line) and ('ФПСУ-IP' in line): 
+                            if 'работы' in line and 'ФПСУ-IP' in line: 
                                 for i in range(len(fpsu[port]['fpsu_on_port'])):
                                     if fpsu[port]['fpsu_on_port'][i]['ip'] == line[-3]:
                                         fpsu[port]['fpsu_on_port'][i]['abonent'].append(tuple(abonent_temp))
                                 flag_forward = True
                                 abonent_temp = []
                                 continue
-
-                            # Абонент за маршрутизатором, детектируем и записываем в мега структуру
-                            if 'Доступен' in line:
-                                flag_fpsu_router_in_next_line = True
+                            
+                            if 'работы' in line and 'Ретрансляция' in line:
+                                flag_retr = True
                                 continue
+
+                            if flag_retr:
+                                if not 'Доступен' in line: # Абонент за портом
+                                    flag_retr = False
+                                    flag_forward = True
+                                    continue
+                                else:
+                                    # Абонент за маршрутизатором
+                                    flag_fpsu_router_in_next_line = True
+                                    flag_retr = False
+                                    continue
                             if flag_fpsu_router_in_next_line:
                                 for i in range(len(fpsu[port]['routers'])):
                                     if fpsu[port]['routers'][i]['ip'] == line[0]:
