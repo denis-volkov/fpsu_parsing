@@ -22,6 +22,8 @@ number_file_sbt = 0  # Количество файлов SBT
 print('Привет, человек! Я помогу тебе  :)')
 print('Анализ файлов...')
 
+fpsu_ignore = []
+
 for files in read_directory:
     for file in files[2]:
         number_file += 1
@@ -57,6 +59,11 @@ for files in read_directory:
 
                 for line in f_sbt:
                     line = line.strip()
+
+                    # Версия 3, пока игнорируем
+                    if 'версия 03' in line:
+                        fpsu_ignore.append(file)
+                        break
 
                     # Поиск серийного номера
                     if const_serial in line:
@@ -249,40 +256,55 @@ with open('fpsuinfo.xml', 'r') as f_xml:
 
 
 # Финальный txt
-# with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
-#     f_result.write('Дата и время анализа: ' + str(datetime.datetime.now()) + '\n')
-#     f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
+with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
+    f_result.write('Дата и время анализа: ' + str(datetime.datetime.now()) + '\n')
+    f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
+    
+    f_result.write('\nЯ пока не могу обрабатывать версию 3. Проигнорированы ФПСУ:\n')
+    for i in range(len(fpsu_ignore)):
+        f_result.write(fpsu_ignore[i] + ' ')
 
-#     f_result.write('\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
-#     for i in range(len(fpsu_list)):
-#         if not fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
-#             f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+    f_result.write('\n\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
+    for i in range(len(fpsu_list)):
+        flag_stop_cycle = False # Вспомогательный флаг для отсановки цикла
+        for port in ('port1', 'port2'):
+            if flag_stop_cycle:
+                break
+            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
+                if re.search(const_ip_ca, fpsu_list[i][port]['fpsu_on_port'][ii]['ip']):
+                    flag_stop_cycle = True
+                    break
+        if flag_stop_cycle:
+            continue
+        else:
+            f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+        # if not fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
+        #     f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
 
-#     f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
-#     for i in range(len(fpsu_list)):
-#         if fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
-#             for ii in range(len(fpsu_list[i].get('abonents'))):
-#                 if not fpsu_list[i].get('abonents')[ii]:
-#                     f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
-#                 break
+    # f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
+    # for i in range(len(fpsu_list)):
+    #     if fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
+    #         for ii in range(len(fpsu_list[i].get('abonents'))):
+    #             if not fpsu_list[i].get('abonents')[ii]:
+    #                 f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+    #             break
 
-#     f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
-#     for i in range(len(fpsu_list)):
-#         if fpsu_list[i].get('change_key') and fpsu_list[i].get('active'):
-#             for ii in range(len(fpsu_list[i].get('change_key'))):
-#                 if fpsu_list[i].get('change_key')[ii] != '120':
-#                     f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
-#                     break
+    # f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
+    # for i in range(len(fpsu_list)):
+    #     if fpsu_list[i].get('change_key') and fpsu_list[i].get('active'):
+    #         for ii in range(len(fpsu_list[i].get('change_key'))):
+    #             if fpsu_list[i].get('change_key')[ii] != '120':
+    #                 f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+    #                 break
 
-#     f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
-#     for i in range(len(fpsu_list)):
-#         if fpsu_list[i].get('reserve') == 2 and fpsu_list[i].get('active'):
-#             f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+    # f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
+    # for i in range(len(fpsu_list)):
+    #     if fpsu_list[i].get('reserve') == 2 and fpsu_list[i].get('active'):
+    #         f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
 
-#     f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
-#     for i in range(len(fpsu_list)):
-#         if 'SCS' not in fpsu_list[i].get('crypt') and fpsu_list[i].get('active'):
-#             f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+    # f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
+    # for i in range(len(fpsu_list)):
+    #     if 'SCS' not in fpsu_list[i].get('crypt') and fpsu_list[i].get('active'):
+    #         f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
 
 print('Готово!')
-print(fpsu_list[0])
