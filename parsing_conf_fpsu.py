@@ -198,8 +198,8 @@ for files in read_directory:
                                 abonent_temp = []
                                 continue
 
-
-            fpsu_list.append(fpsu)
+            if fpsu['sn']: # Для игнорирования версии 3
+                fpsu_list.append(fpsu)
 print('\n', end = '')
 print('Обрабатываю полученные данные...')
 
@@ -244,7 +244,7 @@ with open('fpsuinfo.xml', 'r') as f_xml:
                     temp_reserve = 2
         elif '</fpsu>' in line: # Закончился блок <fpsu>, записываем и сбрасываем то что насобирали
             for i in range(len(fpsu_list)):
-                if fpsu_list[i].get('sn') == temp_sn:
+                if fpsu_list[i]['sn'] == temp_sn:
                     fpsu_list[i]['name'] = temp_name
                     fpsu_list[i]['active'] = temp_active
                     fpsu_list[i]['reserve'] = temp_reserve
@@ -253,7 +253,6 @@ with open('fpsuinfo.xml', 'r') as f_xml:
             temp_name = ''
             temp_active = ''
             temp_reserve = 0
-
 
 # Финальный txt
 with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
@@ -274,12 +273,8 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
                 if re.search(const_ip_ca, fpsu_list[i][port]['fpsu_on_port'][ii]['ip']):
                     flag_stop_cycle = True
                     break
-        if flag_stop_cycle:
-            continue
-        else:
-            f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
-        # if not fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
-        #     f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+        if not flag_stop_cycle:
+            f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
 
     # f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
     # for i in range(len(fpsu_list)):
