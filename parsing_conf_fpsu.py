@@ -112,7 +112,7 @@ for files in read_directory:
                             flag_fpsu = False
                             continue
                         # неизвестный раздел
-                        if re.search(r'[А-Я]{5,} *[А-Я]*', line) and not flag_forward and not flag_fpsu_router_in_next_line:
+                        if re.search(r'[А-Я]{5,} *[А-Я]*', line) and not flag_forward and not flag_fpsu_router_in_next_line and not 'ОТПРАВИТЕЛЬ' in line:
                             flag_abonent = False
                             flag_router = False
                             flag_fpsu = False
@@ -120,7 +120,8 @@ for files in read_directory:
                         line = line.split()
                         if flag_fpsu:
                             if not line:
-                                fpsu[port]['fpsu_on_port'].append(fpsu_on_port_temp)
+                                if re.search(const_re_ip, fpsu_on_port_temp['ip']):
+                                    fpsu[port]['fpsu_on_port'].append(fpsu_on_port_temp)
                                 fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
                                 flag_forward = False
                                 continue
@@ -289,13 +290,20 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
                         flag_stop_cycle = True
                         break
 
-    # f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
-    # for i in range(len(fpsu_list)):
-    #     if fpsu_list[i].get('change_key') and fpsu_list[i].get('active'):
-    #         for ii in range(len(fpsu_list[i].get('change_key'))):
-    #             if fpsu_list[i].get('change_key')[ii] != '120':
-    #                 f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
-    #                 break
+    f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
+    for i in range(len(fpsu_list)):
+        flag_record_ok = False # Запись имени анализируемой ФПСУ произведена
+        for port in ('port1', 'port2'):
+            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
+                if fpsu_list[i][port]['fpsu_on_port'][ii]['crypt'][-1] != 120:
+                    if flag_record_ok:
+                        f_result.write(', ' + fpsu_list[i][port]['fpsu_on_port'][ii]['ip'])
+                    else:
+                        f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ': (')
+                        f_result.write(fpsu_list[i][port]['fpsu_on_port'][ii]['ip'])
+                        flag_record_ok = True
+        if flag_record_ok:
+            f_result.write('),\n')
 
     # f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
     # for i in range(len(fpsu_list)):
