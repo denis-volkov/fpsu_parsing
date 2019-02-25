@@ -276,13 +276,18 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         if not flag_stop_cycle:
             f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
 
-    # f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
-    # for i in range(len(fpsu_list)):
-    #     if fpsu_list[i].get('ip') and fpsu_list[i].get('active'):
-    #         for ii in range(len(fpsu_list[i].get('abonents'))):
-    #             if not fpsu_list[i].get('abonents')[ii]:
-    #                 f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
-    #             break
+    f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
+    for i in range(len(fpsu_list)):
+        flag_stop_cycle = False
+        for port in ('port1', 'port2'):
+            if flag_stop_cycle:
+                break
+            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
+                if re.search(const_ip_ca, fpsu_list[i][port]['fpsu_on_port'][ii]['ip']):
+                    if not fpsu_list[i][port]['fpsu_on_port'][ii]['abonent']:
+                        f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
+                        flag_stop_cycle = True
+                        break
 
     # f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
     # for i in range(len(fpsu_list)):
