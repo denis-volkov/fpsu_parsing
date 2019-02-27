@@ -128,7 +128,8 @@ for files in read_directory:
                             if flag_forward:
                                 continue
                             if 'Адрес' in line: # Извлекаем адрес ФПСУ за портом
-                                fpsu_on_port_temp['ip'] = line[1]
+                                if re.search(const_re_ip, line[1]):
+                                    fpsu_on_port_temp['ip'] = line[1]
                                 continue
                             if 'Криптосеть:' in line: # Извлекаем крипто для туннеля
                                 fpsu_on_port_temp['crypt'].append(line[1])
