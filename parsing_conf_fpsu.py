@@ -112,7 +112,7 @@ for files in read_directory:
                             flag_fpsu = False
                             continue
                         # неизвестный раздел
-                        if re.search(r'[А-Я]{5,} *[А-Я]*', line) and not flag_forward and not flag_fpsu_router_in_next_line and not 'ОТПРАВИТЕЛЬ' in line:
+                        if re.search(r'^[А-Я]{5,} *[А-Я]*', line) and not flag_forward and not flag_fpsu_router_in_next_line and not 'ОТПРАВИТЕЛЬ' in line:
                             flag_abonent = False
                             flag_router = False
                             flag_fpsu = False
@@ -255,6 +255,7 @@ with open('fpsuinfo.xml', 'r') as f_xml:
             temp_active = ''
             temp_reserve = 0
 
+fpsu_report = []
 # Финальный txt
 with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     f_result.write('Дата и время анализа: ' + str(datetime.datetime.now()) + '\n')
@@ -266,6 +267,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
 
     f_result.write('\n\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
     for i in range(len(fpsu_list)):
+        # fpsu_report_temp = {'sn': '', 'ip': '', 'abon': []}
         flag_stop_cycle = False # Вспомогательный флаг для отсановки цикла
         for port in ('port1', 'port2'):
             if flag_stop_cycle:
@@ -275,41 +277,77 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
                     flag_stop_cycle = True
                     break
         if not flag_stop_cycle:
-            f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
+            f_result.write(fpsu_list[i]['sn'] + ', ')###################
+            for port in ('port1', 'port2'):
+                for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
+                     # Тут корректный перечень fpsu_on_port
+                    for k in range(len(fpsu_list)):
+                        for k_port in ('port1', 'port2'):
+                            if fpsu_list[k][k_port]['ip'][0] == fpsu_list[i][port]['fpsu_on_port'][ii]['ip']:
+                                # print(fpsu_list[k][k_port]['ip'][0], '==', fpsu_list[i][port]['fpsu_on_port'][ii]['ip'])########## Корректно, мы нашли ФПСУ у которой есть туннель с текущей анализируемой(без туннеля с ЦА) Теперь нужно найти в перечне её туннулей анализируемую...
+                                for kk in range(len(fpsu_list[k][k_port]['fpsu_on_port'])):
+                                    if fpsu_list[k][k_port]['fpsu_on_port'][kk]['ip'] == fpsu_list[i][port]['ip'][0] and fpsu_list[k][k_port]['fpsu_on_port'][kk]['abonent']: #fpsu_list[i][port]['ip'][0] - адрес анализируемой ФПСУ (без туннеля с ЦА)
+                                        # print(fpsu_list[k][k_port]['fpsu_on_port'][kk]['ip'], '==', fpsu_list[i][port]['ip'][0])####
+                                        fpsu_report.append({'sn': fpsu_list[i]['sn'], 'name': fpsu_list[i]['name'], 'ip': fpsu_list[i][port]['ip'][0], 'abonent': fpsu_list[k][k_port]['fpsu_on_port'][kk]['abonent']})
 
-    f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        flag_stop_cycle = False
-        for port in ('port1', 'port2'):
-            if flag_stop_cycle:
-                break
-            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
-                if re.search(const_ip_ca, fpsu_list[i][port]['fpsu_on_port'][ii]['ip']):
-                    if not fpsu_list[i][port]['fpsu_on_port'][ii]['abonent']:
-                        f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
-                        flag_stop_cycle = True
-                        break
+    # Исправляю маску
+    for i in range(len(fpsu_report)):
+        for ii in range(len(fpsu_report[i]['abonent'])):
+            mask = fpsu_report[i]['abonent'][ii][1]
+            ip = fpsu_report[i]['abonent'][ii][0]
+            if mask == '255.255.255.255':
+                mask = '/32'
+            elif mask == '255.255.255.252':
+                mask = '/30'
+            elif mask == '255.255.255.248':
+                mask = '/29'
+            elif mask == '255.255.255.240':
+                mask = '/28'
+            elif mask == '255.255.255.224':
+                mask = '/27'
+            elif mask == '255.255.255.192':
+                mask = '/26'
+            elif mask == '255.255.255.128':
+                mask = '/25'
+            elif mask == '255.255.255.000':
+                mask = '/24'
+            elif mask == '255.255.254.000':
+                mask = '/23'
+            elif mask == '255.255.252.000':
+                mask = '/22'
+            elif mask == '255.255.248.000':
+                mask = '/21'
+            elif mask == '255.255.240.000':
+                mask = '/20'
+            elif mask == '255.255.224.000':
+                mask = '/19'
+            elif mask == '255.255.192.000':
+                mask = '/18'
+            elif mask == '255.255.128.000':
+                mask = '/17'
+            elif mask == '255.255.000.000':
+                mask = '/16'
+            fpsu_report[i]['abonent'][ii] = ip + mask
+    
+    f_result.write('\n\n' + '='*30 + '\n')
+    for i in range(len(fpsu_report)):
+        for ii in range(len(fpsu_report[i]['abonent'])):
+            f_result.write(fpsu_report[i]['sn'] + ';' + fpsu_report[i]['name'] + ';' + fpsu_report[i]['ip'] + ';' + fpsu_report[i]['abonent'][ii] + '\n')
+        f_result.write('\n') # Разделитель
+    f_result.write('='*30 + '\n')
+    # f_result.write(str(fpsu_report))
 
-    f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        flag_record_ok = False # Запись имени анализируемой ФПСУ произведена
-        for port in ('port1', 'port2'):
-            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
-                if fpsu_list[i][port]['fpsu_on_port'][ii]['crypt'][-1] != 120:
-                    if flag_record_ok:
-                        f_result.write(', ' + fpsu_list[i][port]['fpsu_on_port'][ii]['ip'])
-                    else:
-                        f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ': (')
-                        f_result.write(fpsu_list[i][port]['fpsu_on_port'][ii]['ip'])
-                        flag_record_ok = True
-        if flag_record_ok:
-            f_result.write('),\n')
-
-    f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        if fpsu_list[i].get('reserve') == 2 and fpsu_list[i].get('active'):
-            f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
-
-    # f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
+    # f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
+    # for i in range(len(fpsu_list)):
+    #     flag_stop_cycle = False
+    #     for port in ('port1', 'port2'):
+    #         if flag_stop_cycle:
+    #             break
+    #         for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
+    #             if re.search(const_ip_ca, fpsu_list[i][port]['fpsu_on_port'][ii]['ip']):
+    #                 if not fpsu_list[i][port]['fpsu_on_port'][ii]['abonent']:
+    #                     f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
+    #                     flag_stop_cycle = True
+    #                     break
 
 print('Готово!')
