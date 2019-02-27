@@ -112,7 +112,7 @@ for files in read_directory:
                             flag_fpsu = False
                             continue
                         # неизвестный раздел
-                        if re.search(r'[А-Я]{5,} *[А-Я]*', line) and not flag_forward and not flag_fpsu_router_in_next_line and not 'ОТПРАВИТЕЛЬ' in line:
+                        if re.search(r'^[А-Я]{5,} *[А-Я]*', line) and not flag_forward and not flag_fpsu_router_in_next_line and not 'ОТПРАВИТЕЛЬ' in line:
                             flag_abonent = False
                             flag_router = False
                             flag_fpsu = False
