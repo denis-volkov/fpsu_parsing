@@ -288,7 +288,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
                                 for kk in range(len(fpsu_list[k][k_port]['fpsu_on_port'])):
                                     if fpsu_list[k][k_port]['fpsu_on_port'][kk]['ip'] == fpsu_list[i][port]['ip'][0] and fpsu_list[k][k_port]['fpsu_on_port'][kk]['abonent']: #fpsu_list[i][port]['ip'][0] - адрес анализируемой ФПСУ (без туннеля с ЦА)
                                         # print(fpsu_list[k][k_port]['fpsu_on_port'][kk]['ip'], '==', fpsu_list[i][port]['ip'][0])####
-                                        fpsu_report.append({'sn': fpsu_list[i]['sn'], 'name': fpsu_list[i]['name'], 'ip': fpsu_list[i][port]['ip'][0], 'abonent': fpsu_list[k][k_port]['fpsu_on_port'][kk]['abonent']})
+                                        fpsu_report.append({'sn_master': fpsu_list[k]['name'], 'sn': fpsu_list[i]['sn'], 'name': fpsu_list[i]['name'], 'ip': fpsu_list[i][port]['ip'][0], 'abonent': fpsu_list[k][k_port]['fpsu_on_port'][kk]['abonent']})# sn_master - Владелец мнения
 
     # Исправляю маску
     for i in range(len(fpsu_report)):
@@ -332,7 +332,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     f_result.write('\n\n' + '='*30 + '\n')
     for i in range(len(fpsu_report)):
         for ii in range(len(fpsu_report[i]['abonent'])):
-            f_result.write(fpsu_report[i]['sn'] + ';' + fpsu_report[i]['name'] + ';' + fpsu_report[i]['ip'] + ';' + fpsu_report[i]['abonent'][ii] + '\n')
+            f_result.write(fpsu_report[i]['sn'] + ';' + fpsu_report[i]['name'] + ';' + fpsu_report[i]['ip'] + ';' + fpsu_report[i]['abonent'][ii] + ';sn_master-' + fpsu_report[i]['sn_master'] + '\n')
         f_result.write('\n') # Разделитель
     f_result.write('='*30 + '\n')
     # f_result.write(str(fpsu_report))
