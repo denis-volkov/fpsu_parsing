@@ -10,6 +10,19 @@ except ModuleNotFoundError:
     print('WARNING!!! Скрипт работает без актуальных данных! Not found file "fpsu_private_data.py"')
     const_ip_ca = r'192.168.000.' # Регулярка для адреса ЦА
 
+def port_internal(fpsu_dict):
+    if len(fpsu_dict['port1']['fpsu_on_port']) <= len(fpsu_dict['port2']['fpsu_on_port']):
+        return 'port1'
+    else:
+        return 'port2'
+
+def port_external(fpsu_dict):
+    if len(fpsu_dict['port1']['fpsu_on_port']) >= len(fpsu_dict['port2']['fpsu_on_port']):
+        return 'port1'
+    else:
+        return 'port2'
+
+
 const_serial = 'Серийный номер ФПСУ'
 const_re_ip = r'(\d{3}\.){3}\d{3}' # Регулярка для любого ip-адреса
 
