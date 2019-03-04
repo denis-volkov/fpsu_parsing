@@ -279,6 +279,20 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
                     break
         if not flag_stop_cycle:
             f_result.write(fpsu_list[i]['sn'] + ', ')###################
+            f_result.write(str(fpsu_list[i]) + '\n')
+            # if len(fpsu_list[i]['port1']['fpsu_on_port']):
+            #     temp_port = 'port1'
+            # else:
+            #     temp_port = 'port2'
+            # temp_list = []
+            # temp_list.append(fpsu_list[i][temp_port]['abonents_on_port'])
+            # for m in range(len(fpsu_list[i][temp_port]['fpsu_on_port'])):
+            #     temp_list.append(fpsu_list[i][temp_port]['fpsu_on_port'][m]['abonent'])
+            # for m in range(len(fpsu_list[i][temp_port]['routers'])):
+            #     temp_list.append(fpsu_list[i][temp_port]['routers'][m]['abonent'])
+            # fpsu_report.append({'sn_master': 'куку-ёпта', 'sn': fpsu_list[i]['sn'], 'name': fpsu_list[i]['name'], 'ip': fpsu_list[i][port]['ip'][0], 'abonent': temp_list})
+
+            # fpsu_report.append(fpsu_list[i])
             for port in ('port1', 'port2'):
                 for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
                      # Тут корректный перечень fpsu_on_port
