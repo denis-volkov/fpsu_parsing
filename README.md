@@ -1,4 +1,3 @@
-# fpsu_parsing
 Новая структура
 fpsu_list = [{
             'sn': str - серийный номер,
