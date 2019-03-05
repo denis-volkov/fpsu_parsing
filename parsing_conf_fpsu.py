@@ -190,9 +190,9 @@ for files in read_directory:
 
                             # Абонент за ФПСУ, детектируем и зиписываем в мега структуру
                             if 'работы' in line and 'ФПСУ-IP' in line: 
-                                for i in range(len(fpsu[port]['fpsu_on_port'])):
-                                    if fpsu[port]['fpsu_on_port'][i]['ip'] == line[-3]:
-                                        fpsu[port]['fpsu_on_port'][i]['abonent'].append(tuple(abonent_temp))
+                                for i in fpsu[port]['fpsu_on_port']:
+                                    if i['ip'] == line[-3]:
+                                        i['abonent'].append(tuple(abonent_temp))
                                 flag_forward = True
                                 abonent_temp = []
                                 continue
@@ -212,9 +212,9 @@ for files in read_directory:
                                     flag_retr = False
                                     continue
                             if flag_fpsu_router_in_next_line:
-                                for i in range(len(fpsu[port]['routers'])):
-                                    if fpsu[port]['routers'][i]['ip'] == line[0]:
-                                        fpsu[port]['routers'][i]['abonent'].append(tuple(abonent_temp))
+                                for i in fpsu[port]['routers']:
+                                    if i['ip'] == line[0]:
+                                        i['abonent'].append(tuple(abonent_temp))
                                 flag_fpsu_router_in_next_line = False
                                 flag_forward = True
                                 abonent_temp = []
@@ -265,11 +265,11 @@ with open('fpsuinfo.xml', 'r') as f_xml:
                 else:
                     temp_reserve = 2
         elif '</fpsu>' in line: # Закончился блок <fpsu>, записываем и сбрасываем то что насобирали
-            for i in range(len(fpsu_list)):
-                if fpsu_list[i]['sn'] == temp_sn:
-                    fpsu_list[i]['name'] = temp_name
-                    fpsu_list[i]['active'] = temp_active
-                    fpsu_list[i]['reserve'] = temp_reserve
+            for i in fpsu_list:
+                if i['sn'] == temp_sn:
+                    i['name'] = temp_name
+                    i['active'] = temp_active
+                    i['reserve'] = temp_reserve
                     break
             temp_sn = ''
             temp_name = ''
@@ -282,30 +282,30 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
     
     f_result.write('\nЯ пока не могу обрабатывать версию 3. Проигнорированы ФПСУ:\n')
-    for i in range(len(fpsu_ignore)):
-        f_result.write(fpsu_ignore[i] + ' ')
+    for i in fpsu_ignore:
+        f_result.write(i + ' ')
 
     f_result.write('\n\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
+    for i in fpsu_list:
         flag_stop_cycle = False # Вспомогательный флаг для отсановки цикла
         for port in ('port1', 'port2'):
             if flag_stop_cycle:
                 break
-            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
-                if re.search(const_ip_ca, fpsu_list[i][port]['fpsu_on_port'][ii]['ip']):
+            for ii in i[port]['fpsu_on_port']:
+                if re.search(const_ip_ca, ii['ip']):
                     flag_stop_cycle = True
                     break
         if not flag_stop_cycle:
-            f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
+            f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
             #####
             temp_abonent = []
-            port = port_internal(fpsu_list[i])
-            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
-                temp_abonent.extend(fpsu_list[i][port]['fpsu_on_port'][ii]['abonent'])
-            for ii in range(len(fpsu_list[i][port]['routers'])):
-                temp_abonent.extend(fpsu_list[i][port]['routers'][ii]['abonent'])
-            temp_abonent.extend(fpsu_list[i][port]['abonents_on_port'])
-            for ii  in range(len(temp_abonent)):
+            port = port_internal(i)
+            for ii in i[port]['fpsu_on_port']:
+                temp_abonent.extend(ii['abonent'])
+            for ii in i[port]['routers']:
+                temp_abonent.extend(ii['abonent'])
+            temp_abonent.extend(i[port]['abonents_on_port'])
+            for ii in range(len(temp_abonent)):
                 temp_abonent[ii] = convert_abonent_cidr(temp_abonent[ii])
             f_result.write('АБОНЕНТЫ: ')
             for ii in temp_abonent:
@@ -314,57 +314,57 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
             #####
 
     f_result.write('\n\n' + '=' * 30 + '\nФПСУ c туннелями ЦА и на старых ключах:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
+    for i in fpsu_list:
         for port in ('port1', 'port2'):
-            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
-                if re.search(const_ip_ca, fpsu_list[i][port]['fpsu_on_port'][ii]['ip']):
-                    if 'SCS' not in fpsu_list[i][port]['fpsu_on_port'][ii]['crypt'][0]:
-                        f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
+            for ii in i[port]['fpsu_on_port']:
+                if re.search(const_ip_ca, ii['ip']):
+                    if 'SCS' not in ii['crypt'][0]:
+                        f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
 
     f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
+    for i in fpsu_list:
         flag_stop_cycle = False
         for port in ('port1', 'port2'):
             if flag_stop_cycle:
                 break
-            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
-                if re.search(const_ip_ca, fpsu_list[i][port]['fpsu_on_port'][ii]['ip']):
-                    if not fpsu_list[i][port]['fpsu_on_port'][ii]['abonent']:
-                        f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
+            for ii in i[port]['fpsu_on_port']:
+                if re.search(const_ip_ca, ii['ip']):
+                    if not ii['abonent']:
+                        f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
                         flag_stop_cycle = True
                         break
 
     f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
+    for i in fpsu_list:
         flag_record_ok = False # Запись имени анализируемой ФПСУ произведена
         for port in ('port1', 'port2'):
-            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
-                if fpsu_list[i][port]['fpsu_on_port'][ii]['crypt'][-1] != 120:
+            for ii in i[port]['fpsu_on_port']:
+                if ii['crypt'][-1] != 120:
                     if flag_record_ok:
-                        f_result.write(', ' + fpsu_list[i][port]['fpsu_on_port'][ii]['ip'])
+                        f_result.write(', ' + ii['ip'])
                     else:
-                        f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ': (')
-                        f_result.write(fpsu_list[i][port]['fpsu_on_port'][ii]['ip'])
+                        f_result.write(i['sn'] + ' - ' + i['name'] + ': (')
+                        f_result.write(ii['ip'])
                         flag_record_ok = True
         if flag_record_ok:
             f_result.write('),\n')
 
     f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
-        if fpsu_list[i].get('reserve') == 2 and fpsu_list[i].get('active'):
-            f_result.write(fpsu_list[i].get('sn') + ' - ' + fpsu_list[i].get('name') + ',\n')
+    for i in fpsu_list:
+        if i['reserve'] == 2 and i['active']:
+            f_result.write(i['sn'] + ' - ' + i['name']+ ',\n')
 
     f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
-    for i in range(len(fpsu_list)):
+    for i in fpsu_list:
         flag_stop_cycle = False # Вспомогательный флаг для отсановки цикла
         for port in ('port1', 'port2'):
             if flag_stop_cycle:
                 break
-            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
-                if 'SCS' not in fpsu_list[i][port]['fpsu_on_port'][ii]['crypt'][0]:
+            for ii in i[port]['fpsu_on_port']:
+                if 'SCS' not in ii['crypt'][0]:
                     flag_stop_cycle = True
                     break
         if flag_stop_cycle:
-            f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
+            f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
 
 print('Готово!')
