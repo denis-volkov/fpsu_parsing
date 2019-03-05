@@ -22,6 +22,13 @@ def port_external(fpsu_dict):
     else:
         return 'port2'
 
+def convert_abonent_cidr(abonent):
+    temp = abonent[1].split('.')
+    mask = 0
+    for i in temp:
+        mask += bin(int(i)).count('1')
+    return abonent[0] + '/' + str(mask)
+
 
 const_serial = 'Серийный номер ФПСУ'
 const_re_ip = r'(\d{3}\.){3}\d{3}' # Регулярка для любого ip-адреса
@@ -290,6 +297,21 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
                     break
         if not flag_stop_cycle:
             f_result.write(fpsu_list[i]['sn'] + ' - ' + fpsu_list[i]['name'] + ',\n')
+            #####
+            temp_abonent = []
+            port = port_internal(fpsu_list[i])
+            for ii in range(len(fpsu_list[i][port]['fpsu_on_port'])):
+                temp_abonent.extend(fpsu_list[i][port]['fpsu_on_port'][ii]['abonent'])
+            for ii in range(len(fpsu_list[i][port]['routers'])):
+                temp_abonent.extend(fpsu_list[i][port]['routers'][ii]['abonent'])
+            temp_abonent.extend(fpsu_list[i][port]['abonents_on_port'])
+            for ii  in range(len(temp_abonent)):
+                temp_abonent[ii] = convert_abonent_cidr(temp_abonent[ii])
+            f_result.write('АБОНЕНТЫ: ')
+            for ii in temp_abonent:
+                f_result.write(ii + ', ')
+            f_result.write('\n\n')
+            #####
 
     f_result.write('\n\n' + '=' * 30 + '\nФПСУ c туннелями ЦА и на старых ключах:\n' + '=' * 30 + '\n')
     for i in range(len(fpsu_list)):
