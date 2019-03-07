@@ -32,6 +32,8 @@ def convert_abonent_cidr(abonent):
 
 const_serial = 'Серийный номер ФПСУ'
 const_re_ip = r'(\d{3}\.){3}\d{3}' # Регулярка для любого ip-адреса
+const_new_key = 'SCS'
+const_change_key = 120
 
 read_directory = os.walk(os.getcwd())  # Текущая директория скрипта
 fpsu_list = []
@@ -318,7 +320,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         for port in ('port1', 'port2'):
             for ii in i[port]['fpsu_on_port']:
                 if re.search(const_ip_ca, ii['ip']):
-                    if 'SCS' not in ii['crypt'][0]:
+                    if const_new_key not in ii['crypt'][0]:
                         f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
 
     f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
@@ -339,7 +341,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         flag_record_ok = False # Запись имени анализируемой ФПСУ произведена
         for port in ('port1', 'port2'):
             for ii in i[port]['fpsu_on_port']:
-                if ii['crypt'][-1] != 120:
+                if ii['crypt'][-1] != const_change_key:
                     if flag_record_ok:
                         f_result.write(', ' + ii['ip'])
                     else:
@@ -361,7 +363,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
             if flag_stop_cycle:
                 break
             for ii in i[port]['fpsu_on_port']:
-                if 'SCS' not in ii['crypt'][0]:
+                if const_new_key not in ii['crypt'][0]:
                     flag_stop_cycle = True
                     break
         if flag_stop_cycle:
