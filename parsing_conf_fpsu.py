@@ -32,8 +32,8 @@ def convert_abonent_cidr(abonent):
 
 const_serial = 'Серийный номер ФПСУ'
 const_re_ip = r'(\d{3}\.){3}\d{3}' # Регулярка для любого ip-адреса
-const_new_key = 'SCS'
-const_change_key = 120
+const_new_key = 'SCS' # Признак нового ключа
+const_change_key = 120 # Корректное время смены ключа
 
 read_directory = os.walk(os.getcwd())  # Текущая директория скрипта
 fpsu_list = []
