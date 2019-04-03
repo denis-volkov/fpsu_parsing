@@ -57,14 +57,15 @@ for files in read_directory:
             
             fpsu = {
                     'sn': '',
+                    'arp_proxy': False,
                     'name': '',
                     'crypt_load': [],
                     'port1': {'ip': [], 'fpsu_on_port': [], 'routers': [], 'abonents_on_port':[]},
                     'port2': {'ip': [], 'fpsu_on_port': [], 'routers': [], 'abonents_on_port':[]},
                     'active': '',
                     'reserve': 0}
-            
-            with open(files[0] + '\\' + file, 'r') as f_sbt:
+
+            with open(os.path.join(files[0], file), 'r', -1, 'cp1251',) as f_sbt:
 
                 # Флаги
                 flag_keys = False # Описание ключей 
@@ -91,6 +92,11 @@ for files in read_directory:
                     if const_serial in line:
                         fpsu['sn'] = line.split()[-1]
                         continue
+
+                    # Поиск состояния режима ARP-Proxy
+                    if 'Отключить < ARP Proxy >' in line:
+                        if 'Нет' in line:
+                            fpsu['arp_proxy'] = True
                     
                     # Поиск загруженных ключей
                     if line.upper() == 'КЛЮЧИ':
@@ -228,7 +234,7 @@ print('\n', end = '')
 print('Обрабатываю полученные данные...')
 
 # Обогащение данными с УА (fpsuinfo.xml): имя, доступность, резерв
-with open('fpsuinfo.xml', 'r') as f_xml:
+with open('fpsuinfo.xml', 'r', -1, 'cp1251') as f_xml:
 
     temp_sn = ''
     temp_name = ''
@@ -369,4 +375,9 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         if flag_stop_cycle:
             f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
 
+    f_result.write('\n' + '=' * 30 + '\nФПСУ работает в режиме L2 и адреса на портах разные:\n' + '=' * 30 + '\n')
+    for i in fpsu_list:
+        if i['arp_proxy']:
+            if i['port1']['ip'] != i['port2']['ip']:
+                f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
 print('Готово!')
