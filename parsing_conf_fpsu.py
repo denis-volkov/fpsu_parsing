@@ -379,5 +379,5 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     for i in fpsu_list:
         if i['arp_proxy']:
             if i['port1']['ip'] != i['port2']['ip']:
-                f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
+                f_result.write(i['sn'] + ' - ' + i['name'] + ',\n' + ' - Port 1' +  i['port1']['ip'] + ' - Port 2' + i['port2']['ip'])
 print('Готово!')
