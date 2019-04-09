@@ -41,7 +41,7 @@ fpsu_list = []
 number_file = 0     # Количество файлов
 number_file_sbt = 0  # Количество файлов SBT
 
-print('Привет, человек! Я помогу тебе  :)')
+print('Привет, органика! Я помогу тебе  :)')
 print('Анализ файлов...')
 
 fpsu_ignore = []
@@ -148,7 +148,7 @@ with open('fpsuinfo.xml', 'r', -1, 'cp1251') as f_xml:
 
 
 # Финальный txt
-with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
+with open('parsing_conf_fpsu_result_arp.txt', 'w') as f_result:
     f_result.write('Дата и время анализа: ' + str(datetime.datetime.now()) + '\n')
     f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
     
@@ -242,5 +242,11 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     for i in fpsu_list:
         if i['arp_proxy']:
             if i['port1'] != i['port2']:
+                f_result.write(i['sn'] + ' - ' + i['name'] + ' - Port 1 ' +  i['port1'] + ' - Port 2 - ' + i['port2'] + '\n')
+    
+    f_result.write('\n' + '=' * 30 + '\nФПСУ работает в режиме L2 с адресацией 55*:\n' + '=' * 30 + '\n')
+    for i in fpsu_list:
+        if i['arp_proxy']:
+            if re.search(r'^055.', i['port1']) or re.search(r'^055.', i['port2']):
                 f_result.write(i['sn'] + ' - ' + i['name'] + ' - Port 1 ' +  i['port1'] + ' - Port 2 - ' + i['port2'] + '\n')
 print('Готово!')
