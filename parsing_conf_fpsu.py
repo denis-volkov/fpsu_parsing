@@ -93,9 +93,7 @@ for files in read_directory:
             else:
                 fpsu_ignore.append(file) # Не корректный файл
                 continue
-#################################################################
-            # if fpsu['sn']: # Для игнорирования версии 3
-            #     fpsu_list.append(fpsu)
+
 print('\n', end = '')
 print('Обрабатываю полученные данные...')
 
