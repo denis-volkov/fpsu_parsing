@@ -3,6 +3,7 @@
 import os
 import re
 import datetime
+import parsing_v2
 
 try:
     from fpsu_private_data import const_ip_ca
@@ -32,11 +33,12 @@ def convert_abonent_cidr(abonent):
         mask += bin(int(i)).count('1')
     return abonent[0] + '/' + str(mask)
 
-
-const_serial = 'Серийный номер ФПСУ'
-const_re_ip = r'(\d{3}\.){3}\d{3}' # Регулярка для любого ip-адреса
-const_new_key = 'SCS' # Признак нового ключа
-const_change_key = 120 # Корректное время смены ключа
+const = {
+        'const_serial': 'Серийный номер ФПСУ',
+        'const_re_ip': r'(\d{3}\.){3}\d{3}', # Регулярка для любого ip-адреса
+        'const_new_key': 'SCS', # Признак нового ключа
+        'const_change_key': 120 # Корректное время смены ключа
+        }
 
 read_directory = os.walk(os.getcwd())  # Текущая директория скрипта
 fpsu_list = []
@@ -44,7 +46,7 @@ fpsu_list = []
 number_file = 0     # Количество файлов
 number_file_sbt = 0  # Количество файлов SBT
 
-print('Привет, человек! Я помогу тебе  :)')
+print('Привет, органика! Я помогу тебе  :)')
 print('Анализ файлов...')
 
 fpsu_ignore = []
@@ -67,172 +69,33 @@ for files in read_directory:
                     'port2': {'ip': [], 'fpsu_on_port': [], 'routers': [], 'abonents_on_port':[]},
                     'active': '',
                     'reserve': 0}
+            
+            version = '0' # Версия ФПСУ {0 - не корректный файл | 2, 3 - версии конфигов}
+            file_config = os.path.join(files[0], file)
 
-            with open(os.path.join(files[0], file), 'r', -1, 'cp1251',) as f_sbt:
-
-                # Флаги
-                flag_keys = False # Описание ключей 
-                flag_port = False # Раздел Порт
-                flag_fpsu = False # Внутри блока ФПСУ
-                flag_fpsu_router_in_next_line = False
-                flag_router = False # Внутри блока МАРШРУТИЗАТОРЫ
-                flag_abonent = False
-                flag_forward = False # Необходимость промотки парсинга до пустой строки
-                flag_retr = False
-                port = 'port1' # Номер порта ФПСУ для записи данных
-                fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
-                abonent_temp = [] # временный список, будет кортежем
-
+            with open(file_config, 'r', -1, 'cp1251',) as f_sbt:
                 for line in f_sbt:
-                    line = line.strip()
-
-                    # Версия 3, пока игнорируем
                     if 'версия 03' in line:
+                        version = '3'
                         fpsu_ignore.append(file)
                         break
-
-                    # Поиск серийного номера
-                    if const_serial in line:
-                        fpsu['sn'] = line.split()[-1]
+                    elif 'версия 02' in line:
+                        version = '2'
+                        break
+                    else:
                         continue
-
-                    # Поиск состояния режима ARP-Proxy
-                    if 'Отключить < ARP Proxy >' in line:
-                        if 'Нет' in line:
-                            fpsu['arp_proxy'] = True
-                    
-                    # Поиск загруженных ключей
-                    if line.upper() == 'КЛЮЧИ':
-                        flag_keys = True
-                        continue
-                    if flag_keys:
-                        if 'Криптосеть' in line:
-                            line = line.split()
-                            fpsu['crypt_load'].append(line[1])
-                            continue
-                        elif 'Разрешены' in line:
-                            flag_keys = False
-                    
-                    # Достигли раздела Порт
-                    if re.search(r'^порт', line, re.I):
-                        flag_port = True
-                        flag_fpsu = False
-                        flag_router = False
-                        flag_abonent = False
-                        if re.search(r'порт ?2', line, re.I): # Определяем номер порта
-                           port = 'port2'
-                        continue
-                    if flag_port:
-                        if not fpsu[port]['ip']: # Извлекаем адрес порта
-                            fpsu[port]['ip'].append(line.split()[0])
-                            fpsu[port]['ip'].append(line.split()[1])
-                            continue
-                        if re.search(r'^ФПСУ-IP$', line, re.I):
-                            flag_fpsu = True
-                            flag_abonent = False
-                            flag_router = False
-                            continue
-                        if re.search(r'^МАРШРУТИЗАТОРЫ$', line, re.I):
-                            flag_router = True
-                            flag_fpsu = False
-                            flag_abonent = False
-                            continue
-                        if re.search(r'^АБОНЕНТЫ$', line, re.I):
-                            flag_abonent = True
-                            flag_router = False
-                            flag_fpsu = False
-                            continue
-                        # неизвестный раздел
-                        if re.search(r'^[А-Я]{5,} *[А-Я]*', line) and not flag_forward and not flag_fpsu_router_in_next_line and not 'ОТПРАВИТЕЛЬ' in line:
-                            flag_abonent = False
-                            flag_router = False
-                            flag_fpsu = False
-                            continue
-                        line = line.split()
-                        if flag_fpsu:
-                            if not line:
-                                if re.search(const_re_ip, fpsu_on_port_temp['ip']):
-                                    fpsu[port]['fpsu_on_port'].append(fpsu_on_port_temp)
-                                fpsu_on_port_temp = {'ip': '', 'crypt': [], 'router': [], 'abonent': []}
-                                flag_forward = False
-                                continue
-                            if flag_forward:
-                                continue
-                            if 'Адрес' in line: # Извлекаем адрес ФПСУ за портом
-                                if re.search(const_re_ip, line[1]):
-                                    fpsu_on_port_temp['ip'] = line[1]
-                                continue
-                            if 'Криптосеть:' in line: # Извлекаем крипто для туннеля
-                                fpsu_on_port_temp['crypt'].append(line[1])
-                                fpsu_on_port_temp['crypt'].append(line[-2])
-                                continue
-                            if 'Доступен' in line:
-                                flag_fpsu_router_in_next_line = True
-                                continue
-                            if flag_fpsu_router_in_next_line: # Извлекаем роутеры для туннельной ФПСУ
-                                if re.search(const_re_ip, line[0]):
-                                    fpsu_on_port_temp['router'].extend(line)
-                                    continue
-                                else:
-                                    flag_fpsu_router_in_next_line = False
-                                    flag_forward = True # Ускорени и устранение ошибки, т.к. далее также встречается "Адрес"
-                                    continue
-                        if flag_router:
-                            if 'Основной' in line:
-                                fpsu[port]['routers'].append({'ip': line[-1], 'abonent':[]})
-                        if flag_abonent:
-                            if not line:
-                                flag_forward = False
-                                if abonent_temp:
-                                    fpsu[port]['abonents_on_port'].append(tuple(abonent_temp))
-                                    abonent_temp = []
-                                continue
-                            if flag_forward:
-                                continue
-
-                            # Получаем адрес и маску абонента
-                            if 'Адрес' in line:
-                                abonent_temp.append(line[1])
-                                if 'Host' in line:
-                                    abonent_temp.append('255.255.255.255')
-                                else:
-                                    abonent_temp.append(line[-1])
-                                continue
-
-                            # Абонент за ФПСУ, детектируем и зиписываем в мега структуру
-                            if 'работы' in line and 'ФПСУ-IP' in line: 
-                                for i in fpsu[port]['fpsu_on_port']:
-                                    if i['ip'] == line[-3]:
-                                        i['abonent'].append(tuple(abonent_temp))
-                                flag_forward = True
-                                abonent_temp = []
-                                continue
-                            
-                            if 'работы' in line and 'Ретрансляция' in line:
-                                flag_retr = True
-                                continue
-
-                            if flag_retr:
-                                if not 'Доступен' in line: # Абонент за портом
-                                    flag_retr = False
-                                    flag_forward = True
-                                    continue
-                                else:
-                                    # Абонент за маршрутизатором
-                                    flag_fpsu_router_in_next_line = True
-                                    flag_retr = False
-                                    continue
-                            if flag_fpsu_router_in_next_line:
-                                for i in fpsu[port]['routers']:
-                                    if i['ip'] == line[0]:
-                                        i['abonent'].append(tuple(abonent_temp))
-                                flag_fpsu_router_in_next_line = False
-                                flag_forward = True
-                                abonent_temp = []
-                                continue
-
-            if fpsu['sn']: # Для игнорирования версии 3
-                fpsu_list.append(fpsu)
+            
+            if version == '3':
+                fpsu_ignore.append(file) # На данный момент версия з не обрабатывается
+                continue
+            elif version == '2':
+                fpsu_list.append(parsing_v2.parsing_sbt(fpsu, file_config, const))
+            else:
+                fpsu_ignore.append(file) # Не корректный файл
+                continue
+#################################################################
+            # if fpsu['sn']: # Для игнорирования версии 3
+            #     fpsu_list.append(fpsu)
 print('\n', end = '')
 print('Обрабатываю полученные данные...')
 
@@ -292,7 +155,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     f_result.write('Дата и время анализа: ' + str(datetime.datetime.now()) + '\n')
     f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
     
-    f_result.write('\nЯ пока не могу обрабатывать версию 3. Проигнорированы ФПСУ:\n')
+    f_result.write('\nЯ не cмог всё обработать. Проигнорированы ФПСУ:\n')
     for i in fpsu_ignore:
         f_result.write(i + ' ')
 
@@ -329,7 +192,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         for port in ('port1', 'port2'):
             for ii in i[port]['fpsu_on_port']:
                 if re.search(const_ip_ca, ii['ip']):
-                    if const_new_key not in ii['crypt'][0]:
+                    if const['const_new_key'] not in ii['crypt'][0]:
                         f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
 
     f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
@@ -350,7 +213,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         flag_record_ok = False # Запись имени анализируемой ФПСУ произведена
         for port in ('port1', 'port2'):
             for ii in i[port]['fpsu_on_port']:
-                if ii['crypt'][-1] != const_change_key:
+                if ii['crypt'][-1] != const['const_change_key']:
                     if flag_record_ok:
                         f_result.write(', ' + ii['ip'])
                     else:
@@ -372,7 +235,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
             if flag_stop_cycle:
                 break
             for ii in i[port]['fpsu_on_port']:
-                if const_new_key not in ii['crypt'][0]:
+                if const['const_new_key'] not in ii['crypt'][0]:
                     flag_stop_cycle = True
                     break
         if flag_stop_cycle:
@@ -382,5 +245,5 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     for i in fpsu_list:
         if i['arp_proxy']:
             if i['port1']['ip'] != i['port2']['ip']:
-                f_result.write(i['sn'] + ' - ' + i['name'] + ',\n' + ' - Port 1' +  i['port1']['ip'] + ' - Port 2' + i['port2']['ip'])
+                f_result.write(i['sn'] + ';' + i['name'] + ';' +  i['port1']['ip'][0] + ';' + i['port2']['ip'][0])
 print('Готово!')
