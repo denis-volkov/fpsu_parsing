@@ -2,7 +2,7 @@
 
 import os
 import re
-import datetime
+import time
 import parsing_v2
 
 try:
@@ -10,6 +10,8 @@ try:
 except ModuleNotFoundError:
     print('WARNING!!! Скрипт работает без актуальных данных! Not found file "fpsu_private_data.py"')
     const_ip_ca = r'192.168.000.' # Регулярка для адреса ЦА
+
+time_start = time.time()
 
 
 def port_internal(fpsu_dict):
@@ -150,7 +152,7 @@ with open('fpsuinfo.xml', 'r', -1, 'cp1251') as f_xml:
 
 # Финальный txt
 with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
-    f_result.write('Дата и время анализа: ' + str(datetime.datetime.now()) + '\n')
+    f_result.write('Дата и время анализа: ' + time.strftime('%d-%m-%Y %X',  time.localtime()) + '\n')
     f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
     
     f_result.write('\nЯ не cмог всё обработать. Проигнорированы ФПСУ:\n')
@@ -244,4 +246,6 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         if i['arp_proxy']:
             if i['port1']['ip'] != i['port2']['ip']:
                 f_result.write(i['sn'] + ';' + i['name'] + ';' +  i['port1']['ip'][0] + ';' + i['port2']['ip'][0])
+time_end = time.time()
 print('Готово!')
+print('Я сделал твою задачу за ', time_end-time_start, 'секунд')
