@@ -88,7 +88,7 @@ for files in read_directory:
                         continue
             
             if version == '3':
-                fpsu_ignore.append(file) # На данный момент версия з не обрабатывается
+                fpsu_list.append(parsing_v3.parsing_sbt(fpsu, file_config, const))
                 continue
             elif version == '2':
                 fpsu_list.append(parsing_v2.parsing_sbt(fpsu, file_config, const))
