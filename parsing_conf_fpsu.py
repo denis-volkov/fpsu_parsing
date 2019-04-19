@@ -3,7 +3,7 @@
 import os
 import re
 import time
-import parsing_v2
+import parsing_v2, parsing_v3
 
 try:
     from fpsu_private_data import const_ip_ca
@@ -64,7 +64,7 @@ for files in read_directory:
             
             fpsu = {
                     'sn': '',
-                    'arp_proxy': False,
+                    'arp_proxy': None,
                     'name': '',
                     'crypt_load': [],
                     'port1': {'ip': [], 'fpsu_on_port': [], 'routers': [], 'abonents_on_port':[]},

@@ -27,6 +27,8 @@ def parsing_sbt(fpsu, file_config, const):
             if 'Отключить < ARP Proxy >' in line:
                 if 'Нет' in line:
                     fpsu['arp_proxy'] = True
+                else:
+                    fpsu['arp_proxy'] = False
             # Поиск загруженных ключей
             if line.upper() == 'КЛЮЧИ':
                 flag_keys = True
