@@ -79,7 +79,6 @@ for files in read_directory:
                 for line in f_sbt:
                     if 'версия 03' in line:
                         version = '3'
-                        fpsu_ignore.append(file)
                         break
                     elif 'версия 02' in line:
                         version = '2'
@@ -89,12 +88,10 @@ for files in read_directory:
             
             if version == '3':
                 fpsu_list.append(parsing_v3.parsing_sbt(fpsu, file_config, const))
-                continue
             elif version == '2':
                 fpsu_list.append(parsing_v2.parsing_sbt(fpsu, file_config, const))
             else:
                 fpsu_ignore.append(file) # Не корректный файл
-                continue
 
 print('\n', end = '')
 print('Обрабатываю полученные данные...')
