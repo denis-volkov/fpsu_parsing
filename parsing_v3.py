@@ -188,7 +188,4 @@ def parsing_sbt(fpsu, file_config, const):
                         flag_forward = True
                         abonent_temp = []
                         continue
-    # print(fpsu)###
     return fpsu
-
-# Надо учесть несколько ФПСУ за которыми числиться абонент, основная и резервная
