@@ -63,6 +63,8 @@ def parsing_sbt(fpsu, file_config, const):
                 flag_abonent = False
                 if line[1] == '2':  # Определяем номер порта
                    port = 'port2'
+                else:
+                    port = 'port1'
                 continue
             if flag_port:
                 if not fpsu[port]['ip']:  # Извлекаем адрес порта
