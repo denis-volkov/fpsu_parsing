@@ -152,9 +152,10 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     f_result.write('Дата и время анализа: ' + time.strftime('%d-%m-%Y %X',  time.localtime()) + '\n')
     f_result.write('Из ' + str(number_file) + ' файлов, обнаружено ' + str(number_file_sbt) + ' файлов *.SBT\n')
     
-    f_result.write('\nЯ не cмог всё обработать. Проигнорированы ФПСУ:\n')
-    for i in fpsu_ignore:
-        f_result.write(i + ' ')
+    if len(fpsu_ignore):
+        f_result.write('\nЯ не cмог всё обработать. Проигнорированы ФПСУ:\n')
+        for i in fpsu_ignore:
+            f_result.write(i + ' ')
 
     f_result.write('\n\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
     for i in fpsu_list:
@@ -243,6 +244,7 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         if i['arp_proxy']:
             if i['port1']['ip'] != i['port2']['ip']:
                 f_result.write(i['sn'] + ';' + i['name'] + ';' +  i['port1']['ip'][0] + ';' + i['port2']['ip'][0])
+                
 time_end = time.time()
 print('Готово!')
 print('Я сделал твою задачу за ', time_end-time_start, 'секунд')
