@@ -127,6 +127,8 @@ def parsing_sbt(fpsu, file_config, const):
                             abonent_temp.append('255.255.255.255')
                         else:
                             abonent_temp.append(line[-1])
+                        if abonent_temp[0] == 'Произвольный':
+                            abonent_temp = ('0.0.0.0', '0.0.0.0')
                         continue
                     # Абонент за ФПСУ, детектируем и зиписываем в мега структуру
                     if 'работы' in line and 'ФПСУ-IP' in line:

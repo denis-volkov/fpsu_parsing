@@ -157,94 +157,109 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
         for i in fpsu_ignore:
             f_result.write(i + ' ')
 
-    f_result.write('\n\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
-    for i in fpsu_list:
-        flag_stop_cycle = False # Вспомогательный флаг для отсановки цикла
-        for port in ('port1', 'port2'):
-            if flag_stop_cycle:
-                break
-            for ii in i[port]['fpsu_on_port']:
-                if re.search(const_ip_ca, ii['ip']):
-                    flag_stop_cycle = True
-                    break
-        if not flag_stop_cycle:
-            f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
-            #####
-            temp_abonent = []
-            port = port_internal(i)
-            for ii in i[port]['fpsu_on_port']:
-                temp_abonent.extend(ii['abonent'])
-            for ii in i[port]['routers']:
-                temp_abonent.extend(ii['abonent'])
-            temp_abonent.extend(i[port]['abonents_on_port'])
-            for ii in range(len(temp_abonent)):
-                temp_abonent[ii] = convert_abonent_cidr(temp_abonent[ii])
-            f_result.write('АБОНЕНТЫ: ')
-            for ii in temp_abonent:
-                f_result.write(ii + ', ')
-            f_result.write('\n\n')
-            #####
+    # f_result.write('\n\n' + '=' * 30 + '\nФПСУ без туннелей ЦА:\n' + '=' * 30 + '\n')
+    # for i in fpsu_list:
+    #     flag_stop_cycle = False # Вспомогательный флаг для отсановки цикла
+    #     for port in ('port1', 'port2'):
+    #         if flag_stop_cycle:
+    #             break
+    #         for ii in i[port]['fpsu_on_port']:
+    #             if re.search(const_ip_ca, ii['ip']):
+    #                 flag_stop_cycle = True
+    #                 break
+    #     if not flag_stop_cycle:
+    #         f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
+    #         #####
+    #         temp_abonent = []
+    #         port = port_internal(i)
+    #         for ii in i[port]['fpsu_on_port']:
+    #             temp_abonent.extend(ii['abonent'])
+    #         for ii in i[port]['routers']:
+    #             temp_abonent.extend(ii['abonent'])
+    #         temp_abonent.extend(i[port]['abonents_on_port'])
+    #         for ii in range(len(temp_abonent)):
+    #             temp_abonent[ii] = convert_abonent_cidr(temp_abonent[ii])
+    #         f_result.write('АБОНЕНТЫ: ')
+    #         for ii in temp_abonent:
+    #             f_result.write(ii + ', ')
+    #         f_result.write('\n\n')
+    #         #####
 
-    f_result.write('\n\n' + '=' * 30 + '\nФПСУ c туннелями ЦА и на старых ключах:\n' + '=' * 30 + '\n')
-    for i in fpsu_list:
-        for port in ('port1', 'port2'):
-            for ii in i[port]['fpsu_on_port']:
-                if re.search(const_ip_ca, ii['ip']):
-                    if const['const_new_key'] not in ii['crypt'][0]:
-                        f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
+    # f_result.write('\n\n' + '=' * 30 + '\nФПСУ c туннелями ЦА и на старых ключах:\n' + '=' * 30 + '\n')
+    # for i in fpsu_list:
+    #     for port in ('port1', 'port2'):
+    #         for ii in i[port]['fpsu_on_port']:
+    #             if re.search(const_ip_ca, ii['ip']):
+    #                 if const['const_new_key'] not in ii['crypt'][0]:
+    #                     f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
 
-    f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
-    for i in fpsu_list:
-        flag_stop_cycle = False
-        for port in ('port1', 'port2'):
-            if flag_stop_cycle:
-                break
-            for ii in i[port]['fpsu_on_port']:
-                if re.search(const_ip_ca, ii['ip']):
-                    if not ii['abonent']:
-                        f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
-                        flag_stop_cycle = True
-                        break
+    # f_result.write('\n' + '=' * 30 + '\nНе используется туннель ЦА:\n' + '=' * 30 + '\n')
+    # for i in fpsu_list:
+    #     flag_stop_cycle = False
+    #     for port in ('port1', 'port2'):
+    #         if flag_stop_cycle:
+    #             break
+    #         for ii in i[port]['fpsu_on_port']:
+    #             if re.search(const_ip_ca, ii['ip']):
+    #                 if not ii['abonent']:
+    #                     f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
+    #                     flag_stop_cycle = True
+    #                     break
 
-    f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
-    for i in fpsu_list:
-        flag_record_ok = False # Запись имени анализируемой ФПСУ произведена
-        for port in ('port1', 'port2'):
-            for ii in i[port]['fpsu_on_port']:
-                if ii['crypt'][-1] != const['const_change_key']:
-                    if flag_record_ok:
-                        f_result.write(', ' + ii['ip'])
-                    else:
-                        f_result.write(i['sn'] + ' - ' + i['name'] + ': (')
-                        f_result.write(ii['ip'])
-                        flag_record_ok = True
-        if flag_record_ok:
-            f_result.write('),\n')
+    # f_result.write('\n' + '=' * 30 + '\nНекорректное время смены ключа:\n' + '=' * 30 + '\n')
+    # for i in fpsu_list:
+    #     flag_record_ok = False # Запись имени анализируемой ФПСУ произведена
+    #     for port in ('port1', 'port2'):
+    #         for ii in i[port]['fpsu_on_port']:
+    #             if ii['crypt'][-1] != const['const_change_key']:
+    #                 if flag_record_ok:
+    #                     f_result.write(', ' + ii['ip'])
+    #                 else:
+    #                     f_result.write(i['sn'] + ' - ' + i['name'] + ': (')
+    #                     f_result.write(ii['ip'])
+    #                     flag_record_ok = True
+    #     if flag_record_ok:
+    #         f_result.write('),\n')
 
-    f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
-    for i in fpsu_list:
-        if i['reserve'] == 2 and i['active']:
-            f_result.write(i['sn'] + ' - ' + i['name']+ ',\n')
+    # f_result.write('\n' + '=' * 30 + '\nПроблема с резервом:\n' + '=' * 30 + '\n')
+    # for i in fpsu_list:
+    #     if i['reserve'] == 2 and i['active']:
+    #         f_result.write(i['sn'] + ' - ' + i['name']+ ',\n')
 
-    f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
-    for i in fpsu_list:
-        flag_stop_cycle = False # Вспомогательный флаг для отсановки цикла
-        for port in ('port1', 'port2'):
-            if flag_stop_cycle:
-                break
-            for ii in i[port]['fpsu_on_port']:
-                if const['const_new_key'] not in ii['crypt'][0]:
-                    flag_stop_cycle = True
-                    break
-        if flag_stop_cycle:
-            f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
+    # f_result.write('\n' + '=' * 30 + '\nФПСУ на старых ключах:\n' + '=' * 30 + '\n')
+    # for i in fpsu_list:
+    #     flag_stop_cycle = False # Вспомогательный флаг для отсановки цикла
+    #     for port in ('port1', 'port2'):
+    #         if flag_stop_cycle:
+    #             break
+    #         for ii in i[port]['fpsu_on_port']:
+    #             if const['const_new_key'] not in ii['crypt'][0]:
+    #                 flag_stop_cycle = True
+    #                 break
+    #     if flag_stop_cycle:
+    #         f_result.write(i['sn'] + ' - ' + i['name'] + ',\n')
 
-    f_result.write('\n' + '=' * 30 + '\nФПСУ работает в режиме L2 и адреса на портах разные:\n' + '=' * 30 + '\n')
+    # f_result.write('\n' + '=' * 30 + '\nФПСУ работает в режиме L2 и адреса на портах разные:\n' + '=' * 30 + '\n')
+    # for i in fpsu_list:
+    #     if i['arp_proxy']:
+    #         if i['port1']['ip'] != i['port2']['ip']:
+    #             f_result.write(i['sn'] + ';' + i['name'] + ';' +  i['port1']['ip'][0] + ';' + i['port2']['ip'][0])
+    
+
+    f_result.write('\n' + '=' * 30 + '\nПеречень абонентов в ретрансляции на внешнем порту:\n' + '=' * 30 + '\n')
     for i in fpsu_list:
-        if i['arp_proxy']:
-            if i['port1']['ip'] != i['port2']['ip']:
-                f_result.write(i['sn'] + ';' + i['name'] + ';' +  i['port1']['ip'][0] + ';' + i['port2']['ip'][0])
-                
+        port = port_external(i)
+        retr_abn = []
+        retr_abn.extend(i[port]['abonents_on_port'])
+        for ii in i[port]['routers']:
+            retr_abn.extend(ii['abonent'])
+        
+        # f_result.write(i['sn'] + '\n')
+        for k in retr_abn:
+            f_result.write(convert_abonent_cidr(k) + '\n')
+        
+
+
 time_end = time.time()
 print('Готово!')
 print('Я сделал твою задачу за ', time_end-time_start, 'секунд')
