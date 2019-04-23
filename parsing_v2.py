@@ -38,7 +38,7 @@ def parsing_sbt(fpsu, file_config, const):
                     line = line.split()
                     fpsu['crypt_load'].append(line[1])
                     continue
-                elif 'Разрешены' in line:
+                elif 'Разрешены' in line or not line:
                     flag_keys = False
             # Достигли раздела Порт
             if re.search(r'^порт', line, re.I):
