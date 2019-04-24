@@ -127,7 +127,7 @@ def parsing_sbt(fpsu, file_config, const):
                 if flag_router:
                     if 'Адрес' in line:
                         fpsu[port]['routers'].append(
-                            {'ip': line[-1], 'abonent': []})
+                            {'ip': line[1], 'abonent': []})
                 if flag_abonent:
                     if not line:
                         flag_forward = False
@@ -150,8 +150,8 @@ def parsing_sbt(fpsu, file_config, const):
                         continue
                     # Абонент за ФПСУ, детектируем и зиписываем в мега структуру
                     if 'работы' in line and 'ФПСУ-IP' in line:
-                        if re.search(const['const_re_ip'], line[-3]):
-                            fpsu_temp.append(line[-3])
+                        if re.search(const['const_re_ip'], ' '.join(line)):
+                            fpsu_temp.append(re.search(const['const_re_ip'], ' '.join(line)).group(0))
                         else:
                             flag_fpsu_temp_in_next_lines = True
                     if flag_fpsu_temp_in_next_lines:

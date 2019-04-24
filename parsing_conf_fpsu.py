@@ -35,6 +35,18 @@ def convert_abonent_cidr(abonent):
         mask += bin(int(i)).count('1')
     return abonent[0] + '/' + str(mask)
 
+
+def convert_to_realip(address):
+    address = address.split('.')
+    for i in range(len(address)):
+        if address[i][0] == '0':
+            if address[i][1] == '0':
+                address[i] = address[i][2:]
+            else:
+                address[i] = address[i][1:]
+    return '.'.join(address)
+
+
 const = {
         'const_serial': 'Серийный номер ФПСУ',
         'const_re_ip': r'(\d{3}\.){3}\d{3}', # Регулярка для любого ip-адреса
@@ -247,17 +259,22 @@ with open('parsing_conf_fpsu_result.txt', 'w') as f_result:
     
 
     f_result.write('\n' + '=' * 30 + '\nПеречень абонентов в ретрансляции на внешнем порту:\n' + '=' * 30 + '\n')
+    retrans = []
     for i in fpsu_list:
         port = port_external(i)
         retr_abn = []
         retr_abn.extend(i[port]['abonents_on_port'])
         for ii in i[port]['routers']:
             retr_abn.extend(ii['abonent'])
-        
+
         # f_result.write(i['sn'] + '\n')
-        for k in retr_abn:
-            f_result.write(convert_abonent_cidr(k) + '\n')
-        
+        retrans.extend(retr_abn)
+    for i in range(len(retrans)):
+        retrans[i] = convert_to_realip(convert_abonent_cidr(retrans[i]))
+    retrans = set(retrans)
+
+    for i in retrans:
+        f_result.write(i + '\n')
 
 
 time_end = time.time()
